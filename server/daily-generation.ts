@@ -74,7 +74,7 @@ function validateDrafts(value: unknown): DailyIssueCopy {
       ["bodyAr", 700], ["bodyEn", 700], ["takeawayAr", 240], ["takeawayEn", 240],
       ["imageAltAr", 180], ["imageAltEn", 180],
     ];
-    for (const [key, max] of limits) if (!cleanText(draft[key], max)) throw new Error("daily_copy_field_invalid");
+    for (const [key, max] of limits) if (!cleanText(draft[key], max)) throw new Error(`daily_copy_field_invalid:${key}`);
     const combined = `${draft.titleAr} ${draft.titleEn} ${draft.summaryAr} ${draft.summaryEn} ${draft.bodyAr} ${draft.bodyEn} ${draft.takeawayAr} ${draft.takeawayEn}`;
     if (/https?:\/\/|www\.|\$\s?\d|\b(?:BTC|ETH|NASDAQ|NYSE)\b|\b(?:buy now|sell now|entry price|target price|guaranteed profit|trading signal)\b|\b(?:diagnosis|diagnose|therapy|treatment|medication|prescription)\b|(?:سعر الدخول|هدف سعري|إشارة شراء|إشارة بيع|ربح مضمون|توصية تداول|تشخيص|علاج نفسي|دواء)/i.test(combined)) {
       throw new Error("daily_copy_safety_check_failed");
@@ -96,6 +96,7 @@ async function generateCopy(date: string): Promise<DailyIssueCopy> {
   const system = [
     "You write a small bilingual educational daily issue for a personal portfolio. Return exactly one JSON object with a `posts` array of five items in this fixed order: programming, psychology, trading, design, learning.",
     "For each item include exactly: category, titleAr, titleEn, summaryAr, summaryEn, bodyAr, bodyEn, takeawayAr, takeawayEn, imageAltAr, imageAltEn. Text must be original, concise, suitable for a general audience, and written in natural Arabic and English.",
+    "Every string must be non-empty plain text and stay within these hard character limits, counting spaces: titles 90, summaries 260, bodies 700, takeaways 240, image alt text 180; evolutionAr/evolutionEn 320. Aim much shorter: titles under 70, summaries under 180, bodies under 420, takeaways under 120, alt text under 120, evolution under 240. Never exceed a hard limit.",
     "Also include `themeKey`, exactly one of cobalt, coral, jade, violet, selecting a restrained accent preset, and `evolutionAr`/`evolutionEn`: one short design or feature proposal for preview only, never code, an automatic deployment, or a claim that files changed.",
     "Use stable general knowledge only. Do not claim live browsing, current events, current prices, statistics, study results, or citations. Never include URLs or personal data.",
     "Trading is educational only: no assets, tickers, forecasts, entry/target prices, buy/sell calls, trade signals, leverage suggestions, or profit promises. Psychology is general self-reflection only: no diagnosis, therapy, treatment, medication, or claim to replace a professional.",
