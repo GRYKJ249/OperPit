@@ -1,0 +1,33 @@
+{
+  "routes": [
+    { "path": "/", "title": "الرئيسية" },
+    { "path": "/about", "title": "من أنا" },
+    { "path": "/journey", "title": "الرحلة" },
+    { "path": "/approach", "title": "الطريقة" },
+    { "path": "/skills", "title": "المهارات" },
+    { "path": "/toolkit", "title": "الأدوات" },
+    { "path": "/process", "title": "العملية" },
+    { "path": "/services", "title": "الخدمات" },
+    { "path": "/services/:slug", "title": "تفاصيل الخدمة" },
+    { "path": "/work", "title": "الأعمال" },
+    { "path": "/work/branding", "title": "الهوية والعلامات" },
+    { "path": "/work/product", "title": "المنتجات الرقمية" },
+    { "path": "/work/web", "title": "تجارب الويب" },
+    { "path": "/work/editorial", "title": "التحرير والنشر" },
+    { "path": "/work/motion", "title": "الحركة" },
+    { "path": "/work/experiments", "title": "التجارب" },
+    { "path": "/work/:slug", "title": "دراسة حالة" },
+    { "path": "/journal", "title": "المجلة" },
+    { "path": "/journal/topics/:topic", "title": "موضوع المجلة" },
+    { "path": "/journal/:slug", "title": "مقال" },
+    { "path": "/daily", "title": "موجز اليوم" },
+    { "path": "/daily/:slug", "title": "فكرة اليوم" },
+    { "path": "/github", "title": "مستودعات GitHub العامة" },
+    { "path": "/github/:owner/:repo", "title": "مستودع عام" },
+    { "path": "/ai-studio", "title": "استوديو الذكاء الاصطناعي" },
+    { "path": "/council", "title": "مساحة خاصة" },
+    { "path": "/testimonials", "title": "آراء العملاء" },
+    { "path": "/faq", "title": "الأسئلة الشائعة" },
+    { "path": "/contact", "title": "تواصل" }
+  ]
+}
