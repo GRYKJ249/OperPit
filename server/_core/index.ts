@@ -15,6 +15,7 @@ import { gitlabRouter } from "../gitlab";
 import { analyticsRouter } from "../analytics";
 import { councilRouter } from "../council";
 import { managedGitRouter, startManagedGitSync } from "../managed-git";
+import { startTelegramBot } from "../telegram-bot";
 
 async function startServer() {
   const app = express();
@@ -58,6 +59,7 @@ async function startServer() {
   server.listen(port, "0.0.0.0", () => {
     console.log(`Server listening on port ${port}`);
     startManagedGitSync();
+    void startTelegramBot();
   });
 }
 
