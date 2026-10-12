@@ -14,6 +14,7 @@ import { githubRouter } from "../github";
 import { gitlabRouter } from "../gitlab";
 import { analyticsRouter } from "../analytics";
 import { councilRouter } from "../council";
+import { managedGitRouter, startManagedGitSync } from "../managed-git";
 
 async function startServer() {
   const app = express();
@@ -22,6 +23,7 @@ async function startServer() {
   app.post("/api/assistant", express.json({ limit: "24kb" }), assistantHandler);
   app.use("/api/analytics", express.json({ limit: "2kb" }), analyticsRouter);
   app.use("/api/council", express.json({ limit: "8kb" }), councilRouter);
+  app.use("/api/managed-git", express.json({ limit: "16kb" }), managedGitRouter);
   app.use("/api/daily", dailyRouter);
   app.use("/api/social", express.json({ limit: "8kb" }), socialRouter);
   app.use("/api/github", githubRouter);
@@ -53,7 +55,10 @@ async function startServer() {
   const port = Number(process.env.PORT || "3000");
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid PORT");
   server.on("error", error => { console.error("Server failed:", error.message); process.exit(1); });
-  server.listen(port, "0.0.0.0", () => console.log(`Server listening on port ${port}`));
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`Server listening on port ${port}`);
+    startManagedGitSync();
+  });
 }
 
 startServer().catch(error => { console.error(error); process.exit(1); });

@@ -58,6 +58,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     { href: "/work", key: "work" as const },
     { href: "/services", key: "services" as const },
     { href: "/daily", key: "daily" as const },
+    { href: "/projects", key: "projects" as const },
     { href: "/github", key: "github" as const },
     { href: "/gitlab", key: "gitlab" as const },
     { href: "/journal", key: "journal" as const },
@@ -94,7 +95,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           <div className="footer-column"><h2>{t("workArchive")}</h2><Link href="/work">{t("allWork")} <span>{projects.length}</span></Link>{workCategories.map(category => <Link key={category.slug} href={`/work/${category.slug}`}>{localize(category.title, locale)}</Link>)}</div>
           <div className="footer-column"><h2>{t("journalArchive")}</h2><Link href="/journal">{t("viewAll")} <span>{articles.length}</span></Link>{journalTopics.map(topic => <Link key={topic.slug} href={`/journal/topics/${topic.slug}`}>{localize(topic.title, locale)}</Link>)}</div>
           <div className="footer-column"><h2>{t("services")}</h2><Link href="/services">{t("viewAll")}</Link>{services.slice(0, 4).map(service => <Link key={service.slug} href={`/services/${service.slug}`}>{localize(service.title, locale)}</Link>)}</div>
-          <div className="footer-column"><h2>{locale === "ar" ? "مختبر الذكاء" : "AI workspace"}</h2><Link href="/ai-studio">{t("aiStudio")} <ArrowUpRight size={13} /></Link><Link href="/daily">{t("daily")}</Link><Link href="/github">{t("github")}</Link><Link href="/gitlab">{t("gitlab")}</Link><Link href="/contact">{t("contact")}</Link></div>
+          <div className="footer-column"><h2>{locale === "ar" ? "مختبر الذكاء" : "AI workspace"}</h2><Link href="/ai-studio">{t("aiStudio")} <ArrowUpRight size={13} /></Link><Link href="/council">{locale === "ar" ? "غرفة الشورى" : "AI Council"}</Link><Link href="/daily">{t("daily")}</Link><Link href="/github">{t("github")}</Link><Link href="/gitlab">{t("gitlab")}</Link><Link href="/contact">{t("contact")}</Link></div>
         </div>
         <div className="footer-bottom"><span>© {new Date().getFullYear()} {locale === "ar" ? "مساحة شخصية قابلة للتخصيص" : "A customizable personal space"}</span><span>{locale === "ar" ? `${count} مادة تجريبية منظمة` : `${count} organized sample pieces`}</span><Link href="/faq">{t("faq")} <ArrowUpRight size={13} /></Link><Link href="/privacy">{locale === "ar" ? "الخصوصية" : "Privacy"}</Link><Link href="/community">{locale === "ar" ? "إرشادات المجتمع" : "Community"}</Link></div>
       </div>

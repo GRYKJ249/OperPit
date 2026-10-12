@@ -21,6 +21,7 @@ import { AIStudioPage } from "./features/assistant/AIStudio";
 import { GitHubIndexPage, GitHubRepoPage } from "./features/github/GitHubPages";
 import { GitLabIndexPage, GitLabProjectPage } from "./features/gitlab/GitLabPages";
 import CouncilRoom from "./features/council/CouncilRoom";
+import { ManagedGitIndexPage, ManagedGitProjectPage } from "./features/managed-git/ManagedGitPages";
 
 export default function App({ ssrPath }: { ssrPath?: string }) {
   return <ErrorBoundary>
@@ -51,6 +52,8 @@ export default function App({ ssrPath }: { ssrPath?: string }) {
               <Route path="/github/:owner/:repo" component={GitHubRepoPage} />
               <Route path="/gitlab" component={GitLabIndexPage} />
               <Route path="/gitlab/project/:id" component={GitLabProjectPage} />
+              <Route path="/projects" component={ManagedGitIndexPage} />
+              <Route path="/projects/:id" component={ManagedGitProjectPage} />
               <Route path="/ai-studio" component={AIStudioPage} />
               <Route path="/council" component={CouncilRoom} />
               <Route path="/testimonials" component={TestimonialsPage} />

@@ -1,5 +1,13 @@
 export type ThemeMode = "light" | "dark";
 type CssPalette = Record<"--paper" | "--paper-deep" | "--ink" | "--ink-soft" | "--muted" | "--line" | "--card" | "--brand" | "--brand-deep" | "--coral", string>;
+type ThemePresetShape = {
+  id: string;
+  number: number;
+  nameAr: string;
+  nameEn: string;
+  swatch: string;
+  palettes: Record<ThemeMode, CssPalette>;
+};
 
 const families = [
   { id: "cobalt", ar: "كوبالت", en: "Cobalt", hue: 224 },
@@ -64,7 +72,41 @@ function palettes(hue: number, mood: (typeof moods)[number]): Record<ThemeMode, 
   };
 }
 
-export const themePresets = families.flatMap((family, familyIndex) => moods.map((mood, moodIndex) => {
+const gitprPalette: ThemePresetShape = {
+  id: "gitpr-blue",
+  number: 0,
+  nameAr: "أزرق Gitpr",
+  nameEn: "Gitpr Blue",
+  swatch: "#1459e8",
+  palettes: {
+    light: {
+      "--paper": "#f7faff",
+      "--paper-deep": "#e6edfb",
+      "--ink": "#0d1b3e",
+      "--ink-soft": "#283f6d",
+      "--muted": "#5d6b86",
+      "--line": "#cfe0ff",
+      "--card": "#ffffff",
+      "--brand": "#1459e8",
+      "--brand-deep": "#5034d4",
+      "--coral": "#28c88f",
+    },
+    dark: {
+      "--paper": "#0a1430",
+      "--paper-deep": "#101f45",
+      "--ink": "#eef4ff",
+      "--ink-soft": "#d8e5ff",
+      "--muted": "#9fb4d8",
+      "--line": "#294b85",
+      "--card": "#132653",
+      "--brand": "#79a8ff",
+      "--brand-deep": "#a18aff",
+      "--coral": "#28c88f",
+    },
+  },
+};
+
+const generatedThemePresets = families.flatMap((family, familyIndex) => moods.map((mood, moodIndex) => {
   const hue = family.hue + (moodIndex - 2) * 3;
   return {
     id: `${family.id}-${mood.id}`,
@@ -76,5 +118,7 @@ export const themePresets = families.flatMap((family, familyIndex) => moods.map(
   };
 }));
 
-export type ThemePreset = (typeof themePresets)[number];
-export const defaultThemePreset = themePresets[0];
+export const themePresets: ThemePresetShape[] = [gitprPalette, ...generatedThemePresets];
+
+export type ThemePreset = ThemePresetShape;
+export const defaultThemePreset = gitprPalette;

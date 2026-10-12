@@ -36,6 +36,13 @@
       "when": 1791328780943,
       "tag": "0004_council_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1791797680741,
+      "tag": "0005_open_stephen_strange",
+      "breakpoints": true
     }
   ]
 }

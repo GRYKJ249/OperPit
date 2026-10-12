@@ -108,7 +108,7 @@ export default function CouncilRoom() {
         daily_public_feed: ar ? "الموجز العام" : "public feed",
         privacy_safe_analytics: ar ? "إحصاءات مجهلة" : "anonymous analytics",
       }[id] ?? id));
-      setNotice(ar ? `${replies.length} ردّ · أدوات قراءة: ${toolNames.join("، ")}` : `${replies.length} replies · read tools: ${toolNames.join(", ")}`);
+      setNotice(ar ? `${replies.length} ردّ · كل أدوات القراءة الآمنة: ${toolNames.join("، ")}` : `${replies.length} replies · all safe read tools: ${toolNames.join(", ")}`);
       await loadState();
     } catch (cause) { setError(safeErrorText(locale, cause instanceof Error ? cause.message : "council_chat_unavailable")); }
     finally { setBusy(false); }

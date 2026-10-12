@@ -2,7 +2,7 @@ import type { SiteLocale } from "./languages";
 
 const dictionaries = {
   ar: {
-    home: "الرئيسية", about: "من أنا", work: "الأعمال", services: "الخدمات", journal: "المجلة", contact: "تواصل", daily: "موجز اليوم", github: "GitHub", aiStudio: "استوديو الذكاء الاصطناعي",
+    home: "الرئيسية", about: "من أنا", work: "الأعمال", services: "الخدمات", journal: "المجلة", contact: "تواصل", daily: "موجز اليوم", github: "GitHub", projects: "مشاريعي", aiStudio: "استوديو الذكاء الاصطناعي",
     testimonials: "آراء العملاء", faq: "الأسئلة الشائعة", search: "ابحث في الأرشيف", searchHint: "مشاريع، مقالات، خدمات…",
     searchEmpty: "لا توجد نتائج بهذا البحث.", searchOpen: "افتح البحث", language: "English", themeLight: "الوضع الفاتح", themeDark: "الوضع الداكن",
     switchTheme: "تبديل المظهر", skip: "تخطَّ إلى المحتوى", explore: "استكشف الأعمال", sayHello: "ابدأ محادثة",
@@ -32,7 +32,7 @@ const dictionaries = {
     gitlab: "GitLab", pickLanguage: "اختر لغة الواجهة", pickTheme: "اختر ثيم الموقع", lowData: "وضع البيانات الخفيف", lowDataOn: "مفعّل — صور أقل وحركة أخف", lowDataOff: "متوقف — التجربة الكاملة",
   },
   en: {
-    home: "Home", about: "About", work: "Work", services: "Services", journal: "Journal", contact: "Contact", daily: "Daily ideas", github: "GitHub", aiStudio: "AI studio",
+    home: "Home", about: "About", work: "Work", services: "Services", journal: "Journal", contact: "Contact", daily: "Daily ideas", github: "GitHub", projects: "My projects", aiStudio: "AI studio",
     testimonials: "Testimonials", faq: "FAQ", search: "Search the archive", searchHint: "Projects, articles, services…",
     searchEmpty: "No results for this search.", searchOpen: "Open search", language: "العربية", themeLight: "Light mode", themeDark: "Dark mode",
     switchTheme: "Switch appearance", skip: "Skip to content", explore: "Explore the work", sayHello: "Start a conversation",

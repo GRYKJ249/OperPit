@@ -25,12 +25,9 @@ const siteCapabilities = [
   { id: "secret_council", status: "admin_only", detail: "غرفة خاصة للاجتماعات والاستطلاعات وتثبيت المقترحات وتجميد النماذج والفيتو البشري." },
 ];
 
-export function selectCouncilSiteTools(prompt: string): CouncilSiteToolId[] {
-  const normalized = prompt.toLocaleLowerCase();
-  const selected: CouncilSiteToolId[] = ["site_capabilities", "ai_provider_status"];
-  if (/\b(daily|feed|post|posts|article|today|content)\b|موجز|منشور|منشورات|مقال|المحتوى|اليوم/u.test(normalized)) selected.push("daily_public_feed");
-  if (/\b(analytics|traffic|visitors|visitor|views|activity|pulse|metrics)\b|تحليلات|زيارات|زائر|زوار|مشاهدات|نشاط|نبض|إحصاء|احصاء/u.test(normalized)) selected.push("privacy_safe_analytics");
-  return selected;
+/** Every council prompt receives the complete safe, read-only site snapshot. */
+export function selectCouncilSiteTools(_prompt: string): CouncilSiteToolId[] {
+  return ["site_capabilities", "ai_provider_status", "daily_public_feed", "privacy_safe_analytics"];
 }
 
 function safePublicText(value: string, max: number) {
@@ -53,12 +50,12 @@ async function latestPublishedFeed() {
   }
 }
 
-/** Executes only the fixed read-only tools requested by an authenticated council prompt. */
+/** Executes every fixed read-only tool for an authenticated council prompt. */
 export async function collectCouncilToolContext(prompt: string, providers: ProviderSnapshot) {
   const tools = selectCouncilSiteTools(prompt);
   const data: Record<string, unknown> = {
     generatedAt: new Date().toISOString(),
-    privacy: "Read-only site data only. No secret values, raw visitor data, public comments, private chats, private repositories, or source files.",
+    privacy: "Complete safe read-only site snapshot. No secret values, raw visitor data, public comments, private chats, private repositories, or source files.",
   };
   if (tools.includes("site_capabilities")) data.siteCapabilities = siteCapabilities;
   if (tools.includes("ai_provider_status")) {

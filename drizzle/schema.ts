@@ -229,6 +229,33 @@ export const councilAuditEvents = mysqlTable("councilAuditEvents", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => [index("council_audit_date_idx").on(table.eventDate, table.createdAt)]);
 
+/** Owner-managed repositories mirrored locally for the public portfolio. Tokens never enter this table. */
+export const managedGitProjects = mysqlTable("managedGitProjects", {
+  id: int("id").autoincrement().primaryKey(),
+  provider: mysqlEnum("provider", ["github", "gitlab"]).notNull(),
+  externalId: varchar("externalId", { length: 128 }).notNull(),
+  owner: varchar("owner", { length: 180 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  fullName: varchar("fullName", { length: 220 }).notNull(),
+  description: varchar("description", { length: 500 }).default("").notNull(),
+  cloneUrl: varchar("cloneUrl", { length: 500 }).notNull(),
+  webUrl: varchar("webUrl", { length: 500 }).notNull(),
+  defaultBranch: varchar("defaultBranch", { length: 120 }).default("main").notNull(),
+  visibility: mysqlEnum("visibility", ["private", "internal", "public"]).default("private").notNull(),
+  exposure: mysqlEnum("exposure", ["private", "open_source", "for_sale"]).default("private").notNull(),
+  published: int("published").default(0).notNull(),
+  localPath: varchar("localPath", { length: 500 }).notNull(),
+  syncStatus: mysqlEnum("syncStatus", ["pending", "syncing", "synced", "error"]).default("pending").notNull(),
+  syncError: varchar("syncError", { length: 240 }),
+  sourceUpdatedAt: timestamp("sourceUpdatedAt"),
+  lastSyncedAt: timestamp("lastSyncedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  uniqueIndex("managed_git_provider_external_unique").on(table.provider, table.externalId),
+  index("managed_git_published_idx").on(table.published, table.updatedAt),
+]);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type DailyPost = typeof dailyPosts.$inferSelect;

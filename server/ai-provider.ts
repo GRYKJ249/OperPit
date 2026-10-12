@@ -3,6 +3,7 @@ import { recordAiUsage, type AiUsageMode } from "./ai-usage";
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 export type AiProviderId = "manus" | "openai" | "gemini" | "deepseek" | "groq";
+export type GeneratedImage = { bytes: Uint8Array; mimeType: "image/png" | "image/jpeg" | "image/webp" };
 type CompleteOptions = { maxTokens: number; timeoutMs?: number; usageMode?: AiUsageMode; metricDate?: string };
 type ProviderSpec = { id: AiProviderId; label: string; keys: () => string[]; model: () => string; family: "managed" | "openai" | "gemini" | "deepseek" };
 
@@ -71,9 +72,10 @@ async function requestWithKey(spec: ProviderSpec, key: string, messages: ChatMes
     headers = { Authorization: `Bearer ${key}` };
     body = { messages, max_tokens: maxTokens };
   } else if (spec.id === "openai" || spec.id === "groq") {
-    url = spec.id === "openai" ? "https://api.openai.com/v1/chat/completions" : "https://api.groq.com/openai/v1/chat/completions";
+    const openAiBase = (process.env.PORTFOLIO_OPENAI_API_BASE?.trim() || "https://api.openai.com/v1").replace(/\/+$/, "");
+    url = spec.id === "openai" ? `${openAiBase}/chat/completions` : "https://api.groq.com/openai/v1/chat/completions";
     headers = { Authorization: `Bearer ${key}` };
-    body = { model, messages, max_completion_tokens: maxTokens };
+    body = { model, messages, ...(spec.id === "groq" ? { max_tokens: maxTokens } : { max_completion_tokens: maxTokens }) };
   } else if (spec.id === "deepseek") {
     url = "https://api.deepseek.com/chat/completions";
     headers = { Authorization: `Bearer ${key}` };
@@ -98,6 +100,17 @@ async function requestWithKey(spec: ProviderSpec, key: string, messages: ChatMes
     text = parts.map(part => typeof part.text === "string" ? part.text : "").join("\n").trim() || null;
   }
   if (!text) throw new ProviderFailure(response.status, spec.id);
+  return text;
+}
+
+async function requestInternalModel(model: string, messages: ChatMessage[], maxTokens: number, timeoutMs: number) {
+  const key = process.env.OPENAI_API_KEY?.trim();
+  const base = process.env.OPENAI_API_BASE?.trim().replace(/\/+$/, "");
+  if (!key || !base) throw new ProviderFailure(null, "gemini");
+  const { response, payload } = await postJson(`${base}/chat/completions`, { Authorization: `Bearer ${key}` }, { model, messages, max_completion_tokens: maxTokens }, timeoutMs);
+  if (!response.ok) throw new ProviderFailure(response.status, "gemini");
+  const text = chatContent(payload);
+  if (!text) throw new ProviderFailure(response.status, "gemini");
   return text;
 }
 
@@ -140,6 +153,18 @@ async function invoke(spec: ProviderSpec, messages: ChatMessage[], options: Comp
       keyCooldowns.set(secretFingerprint(spec.id, key), Date.now() + coolingMs);
     }
   }
+  if (spec.id === "gemini" && process.env.OPENAI_API_KEY && process.env.OPENAI_API_BASE) {
+    try {
+      const result = await requestInternalModel("gemini-3-flash-preview", messages, maxTokens, timeoutMs);
+      providerSuccess.set(spec.id, Date.now());
+      providerError.delete(spec.id);
+      await recordAiUsage(options.usageMode ?? "guide", options.metricDate);
+      return result;
+    } catch (error) {
+      const failure = error instanceof ProviderFailure ? error : new ProviderFailure(null, spec.id);
+      providerError.set(spec.id, { code: failure.status === 429 ? "rate_limited" : failure.status === 401 || failure.status === 403 ? "key_rejected" : "temporarily_unavailable", at: Date.now() });
+    }
+  }
   throw lastFailure ?? new ProviderFailure(null, spec.id);
 }
 
@@ -178,4 +203,53 @@ export function councilProviderRegistry() {
 
 export function truncateWords(value: string, maxWords: number) {
   return wordLimit(value.replace(/\u0000/g, " "), maxWords);
+}
+
+/** Generate a post illustration through the site's configured OpenAI-compatible image provider. */
+export async function generateImageWithProvider(prompt: string, timeoutMs = 120_000): Promise<GeneratedImage> {
+  const geminiKeys = splitKeys(process.env.PORTFOLIO_GEMINI_API_KEYS);
+  const geminiModel = process.env.PORTFOLIO_GEMINI_IMAGE_MODEL?.trim() || "gemini-2.5-flash-image";
+  for (const key of geminiKeys) {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent`, {
+        method: "POST",
+        headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { responseModalities: ["IMAGE"] } }),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      const payload = await response.json().catch(() => null) as { candidates?: { content?: { parts?: { inlineData?: { data?: unknown; mimeType?: unknown } }[] } }[] } | null;
+      const part = payload?.candidates?.[0]?.content?.parts?.find(item => typeof item.inlineData?.data === "string");
+      if (response.ok && part?.inlineData?.data && typeof part.inlineData.data === "string") {
+        const mime = part.inlineData.mimeType === "image/jpeg" ? "image/jpeg" : part.inlineData.mimeType === "image/webp" ? "image/webp" : "image/png";
+        return { bytes: new Uint8Array(Buffer.from(part.inlineData.data, "base64")), mimeType: mime };
+      }
+    } catch { /* Try the next configured image provider. */ }
+  }
+  const keys = splitKeys(process.env.PORTFOLIO_OPENAI_API_KEYS ?? process.env.PORTFOLIO_OPENAI_API_KEY);
+  const base = (process.env.PORTFOLIO_IMAGE_API_BASE?.trim() || "https://api.openai.com/v1").replace(/\/+$/, "");
+  const model = process.env.PORTFOLIO_IMAGE_MODEL?.trim() || "gpt-image-1";
+  if (!keys.length) throw new Error("image_provider_not_configured");
+  let lastStatus: number | null = null;
+  for (const key of keys) {
+    try {
+      const response = await fetch(`${base}/images/generations`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model, prompt, size: "1024x1024", quality: "medium", response_format: "b64_json" }),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      lastStatus = response.status;
+      const payload = await response.json().catch(() => null) as { data?: { b64_json?: unknown; url?: unknown }[] } | null;
+      if (!response.ok || !payload?.data?.[0]) continue;
+      const first = payload.data[0];
+      if (typeof first.b64_json === "string" && first.b64_json.length > 0) {
+        return { bytes: new Uint8Array(Buffer.from(first.b64_json, "base64")), mimeType: "image/png" };
+      }
+      if (typeof first.url === "string" && first.url.startsWith("https://")) {
+        const image = await fetch(first.url, { signal: AbortSignal.timeout(60_000) });
+        if (image.ok) return { bytes: new Uint8Array(await image.arrayBuffer()), mimeType: "image/png" };
+      }
+    } catch { /* Try the next configured key. */ }
+  }
+  throw new Error(lastStatus === 401 || lastStatus === 403 ? "image_provider_key_rejected" : "image_provider_unavailable");
 }

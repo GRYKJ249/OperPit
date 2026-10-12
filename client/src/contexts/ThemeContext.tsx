@@ -34,7 +34,7 @@ export function ThemeProvider({ children, defaultTheme = "light", switchable = f
         setTheme(hour >= 19 || hour < 7 ? "dark" : defaultTheme);
       }
       const storedPreset = window.localStorage.getItem("folio-theme-preset");
-      if (storedPreset && themePresets.some(preset => preset.id === storedPreset)) setPresetId(storedPreset);
+      if (storedPreset !== "gitpr-blue") setPresetId("gitpr-blue");
       const storedData = window.localStorage.getItem("folio-low-data");
       if (storedData === "true" || storedData === "false") setLowDataState(storedData === "true");
       else {
