@@ -2,6 +2,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { dailyBatches, dailyPosts } from "../drizzle/schema";
 import { getDb } from "./db";
 import { getSitePulseSnapshot } from "./analytics";
+import { redactPotentialSecrets } from "./council-security";
 
 export type CouncilSiteToolId = "site_capabilities" | "ai_provider_status" | "daily_public_feed" | "privacy_safe_analytics";
 type ProviderSnapshot = { id: string; label: string; status: string }[];
@@ -32,16 +33,21 @@ export function selectCouncilSiteTools(prompt: string): CouncilSiteToolId[] {
   return selected;
 }
 
+function safePublicText(value: string, max: number) {
+  const plain = value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+  return redactPotentialSecrets(plain).slice(0, max);
+}
+
 async function latestPublishedFeed() {
   try {
     const db = await getDb();
     if (!db) return { status: "unavailable", posts: [] };
-    const [batch] = await db.select({ batchDate: dailyBatches.batchDate, themeKey: dailyBatches.themeKey, evolutionAr: dailyBatches.evolutionAr })
+    const [batch] = await db.select({ batchDate: dailyBatches.batchDate, themeKey: dailyBatches.themeKey })
       .from(dailyBatches).where(eq(dailyBatches.status, "published")).orderBy(desc(dailyBatches.batchDate)).limit(1);
     if (!batch) return { status: "empty", posts: [] };
     const posts = await db.select({ category: dailyPosts.category, titleAr: dailyPosts.titleAr, titleEn: dailyPosts.titleEn })
       .from(dailyPosts).where(eq(dailyPosts.batchDate, batch.batchDate)).orderBy(asc(dailyPosts.position)).limit(5);
-    return { status: "published", date: batch.batchDate, theme: batch.themeKey, evolution: batch.evolutionAr, posts };
+    return { status: "published", date: batch.batchDate, theme: batch.themeKey, posts: posts.map(post => ({ category: post.category, titleAr: safePublicText(post.titleAr, 180), titleEn: safePublicText(post.titleEn, 180) })) };
   } catch {
     return { status: "unavailable", posts: [] };
   }
