@@ -84,7 +84,7 @@ export default function CouncilRoom() {
       method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       credentials: "same-origin", cache: "no-store", body: JSON.stringify(body),
     });
-    const payload = await response.json().catch(() => null) as { error?: string; success?: boolean; status?: string; replies?: { provider: string; label: string; content: string; status: string }[]; winner?: string } | null;
+    const payload = await response.json().catch(() => null) as { error?: string; success?: boolean; status?: string; replies?: { provider: string; label: string; content: string; status: string }[]; winner?: string; tools?: string[] } | null;
     if (response.status === 401) { clearCouncilSession(); setToken(null); throw new Error("council_session_required"); }
     if (!response.ok || !payload) throw new Error(payload?.error ?? "council_action_unavailable");
     return payload;
@@ -102,7 +102,13 @@ export default function CouncilRoom() {
       const result = await sendAction("chat", { prompt, history });
       const replies = result.replies ?? [];
       setOptimistic(current => [...current, ...replies.map((reply, index) => ({ id: `${messageId}-${index}`, sequence: current.length + index + 2, providerId: reply.provider, role: "reply", ideaId: null, body: reply.content, createdAt: new Date().toISOString() }))]);
-      setNotice(ar ? `${replies.length} ردّ من أعضاء المجلس` : `${replies.length} council replies`);
+      const toolNames = (result.tools ?? []).map(id => ({
+        site_capabilities: ar ? "قدرات الموقع" : "site capabilities",
+        ai_provider_status: ar ? "حالة النماذج" : "provider status",
+        daily_public_feed: ar ? "الموجز العام" : "public feed",
+        privacy_safe_analytics: ar ? "إحصاءات مجهلة" : "anonymous analytics",
+      }[id] ?? id));
+      setNotice(ar ? `${replies.length} ردّ · أدوات قراءة: ${toolNames.join("، ")}` : `${replies.length} replies · read tools: ${toolNames.join(", ")}`);
       await loadState();
     } catch (cause) { setError(safeErrorText(locale, cause instanceof Error ? cause.message : "council_chat_unavailable")); }
     finally { setBusy(false); }
@@ -180,6 +186,8 @@ export default function CouncilRoom() {
           <button className="council-group-trigger" onClick={() => setShowGroupInfo(true)} aria-label={ar ? "معلومات المجموعة" : "Group information"}><span className="council-avatar-stack"><i>G</i><i>D</i><i>M</i></span><span><strong>{state.run?.groupName ?? (ar ? "مجلس الفكرة" : "Idea Council")}</strong><small>{state.providers.length} {ar ? "أعضاء · اضغط لعرض التفاصيل" : "members · click for details"}</small></span></button>
           <div className="council-chat-actions"><span className="council-live-label"><i />{ar ? "قناة خاصة" : "PRIVATE CHANNEL"}</span><button className="icon-button" onClick={() => void loadState()} title={ar ? "تحديث" : "Refresh"} aria-label={ar ? "تحديث" : "Refresh"}><RefreshCw size={16} /></button><button className="icon-button" onClick={() => { clearCouncilSession(); setToken(null); }} title={ar ? "إنهاء الجلسة" : "Lock room"} aria-label={ar ? "إنهاء الجلسة" : "Lock room"}><LockKeyhole size={16} /></button></div>
         </header>
+
+        <aside className="council-tool-access"><div className="council-tool-access__lead"><ShieldCheck size={15} /><p>{ar ? "أعضاء المجلس يطّلعون على قدرات الموقع وحالة النماذج؛ وتُستدعى العناوين العامة أو التحليلات المجهلة عند الحاجة." : "Council members receive the site capability index and provider status; public headlines or anonymous analytics are added when relevant."}</p></div><details><summary>{ar ? "حدود الوصول" : "Access boundaries"}</summary><p>{ar ? "القراءة فقط: لا أسرار أو هويات زوار أو تعليقات أو مستودعات خاصة. إجراءات الإدارة والتغييرات لا تنفذ إلا عبر أدوات المسؤول." : "Read-only: no secrets, visitor identities, comments, or private repositories. Admin actions and site changes stay behind owner controls."}</p></details></aside>
 
         <div className="council-chat-scroll" ref={scrollRef}>
           <div className="council-date-divider"><span>{ar ? "غرفة الشورى · محاضر مشفرة" : "COUNCIL ROOM · ENCRYPTED MINUTES"}</span></div>

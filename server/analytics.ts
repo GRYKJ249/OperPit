@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { count, countDistinct, eq, gte, desc } from "drizzle-orm";
 import { Router, type Request } from "express";
 import { siteVisitEvents } from "../drizzle/schema";
 import { getDb } from "./db";
 
 export const analyticsRouter = Router();
 const windows = new Map<string, { start: number; count: number }>();
-const staticRoutes = new Set(["/", "/about", "/journey", "/approach", "/skills", "/toolkit", "/process", "/services", "/work", "/journal", "/daily", "/github", "/ai-studio", "/testimonials", "/faq", "/contact", "/privacy", "/community"]);
+const staticRoutes = new Set(["/", "/about", "/journey", "/approach", "/skills", "/toolkit", "/process", "/services", "/work", "/journal", "/daily", "/github", "/gitlab", "/ai-studio", "/testimonials", "/faq", "/contact", "/privacy", "/community"]);
 
 function limit(key: string, max: number) {
   const now = Date.now();
@@ -31,6 +31,8 @@ function normalizeRoute(value: unknown) {
   if (/^\/journal\/[a-z0-9-]{1,100}$/.test(path)) return "/journal/:slug";
   if (/^\/daily\/daily-\d{4}-\d{2}-\d{2}-\d{2}-(programming|psychology|trading|design|learning)$/.test(path)) return "/daily/:slug";
   if (/^\/github\/[A-Za-z0-9_.-]{1,39}\/[A-Za-z0-9_.-]{1,100}$/.test(path)) return "/github/:owner/:repo";
+  if (/^\/gitlab\/project\/\d{1,12}$/.test(path)) return "/gitlab/project/:id";
+  if (path === "/gitlab") return "/gitlab";
   // Never log a visitor's secret council route, code, query, or arbitrary path.
   return null;
 }
@@ -65,4 +67,39 @@ analyticsRouter.post("/visit", async (req, res) => {
   } catch {
     return res.status(503).json({ error: "analytics_unavailable" });
   }
+});
+
+export async function getSitePulseSnapshot() {
+  try {
+    const db = await getDb();
+    if (!db) return { status: "warming", visitors: null, views: null, activeDays: 0, topRoutes: [], asOf: new Date().toISOString() };
+    const since = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const [summary] = await db.select({
+      visits: count(),
+      visitors: countDistinct(siteVisitEvents.visitorHash),
+      activeDays: countDistinct(siteVisitEvents.metricDate),
+    }).from(siteVisitEvents).where(gte(siteVisitEvents.metricDate, since));
+    const uniqueVisitors = Number(summary?.visitors) || 0;
+    const top = uniqueVisitors >= 10 ? await db.select({
+      route: siteVisitEvents.route,
+      sessions: countDistinct(siteVisitEvents.visitorHash),
+    }).from(siteVisitEvents).where(gte(siteVisitEvents.metricDate, since))
+      .groupBy(siteVisitEvents.route).orderBy(desc(countDistinct(siteVisitEvents.visitorHash))).limit(4) : [];
+    const topRoutes = top.filter(item => Number(item.sessions) >= 5).map(item => ({ route: item.route, sessions: Number(item.sessions) }));
+    return {
+      status: uniqueVisitors >= 10 ? "active" : "quiet",
+      visitors: uniqueVisitors >= 10 ? uniqueVisitors : null,
+      views: uniqueVisitors >= 10 ? Number(summary?.visits) || 0 : null,
+      activeDays: uniqueVisitors >= 10 ? Number(summary?.activeDays) || 0 : 0,
+      topRoutes,
+      asOf: new Date().toISOString(),
+    };
+  } catch {
+    return { status: "warming", visitors: null, views: null, activeDays: 0, topRoutes: [], asOf: new Date().toISOString() };
+  }
+}
+
+analyticsRouter.get("/pulse", async (_req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+  return res.json(await getSitePulseSnapshot());
 });
