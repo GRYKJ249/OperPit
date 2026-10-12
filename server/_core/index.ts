@@ -11,6 +11,7 @@ import { assistantHandler } from "../assistant";
 import { dailyRouter, scheduledDailyHandler } from "../daily";
 import { socialRouter } from "../social";
 import { githubRouter } from "../github";
+import { gitlabRouter } from "../gitlab";
 import { analyticsRouter } from "../analytics";
 import { councilRouter } from "../council";
 
@@ -24,6 +25,7 @@ async function startServer() {
   app.use("/api/daily", dailyRouter);
   app.use("/api/social", express.json({ limit: "8kb" }), socialRouter);
   app.use("/api/github", githubRouter);
+  app.use("/api/gitlab", gitlabRouter);
   app.post("/api/scheduled/daily", express.json({ limit: "2kb" }), scheduledDailyHandler);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));

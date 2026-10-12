@@ -70,7 +70,7 @@ export async function assistantHandler(req: Request, res: Response) {
   if (!message) return res.status(400).json({ error: "message_required" });
   if (message.length > MAX_MESSAGE_LENGTH) return res.status(413).json({ error: "message_too_long" });
   const mode: AssistantMode = body.mode === "draft" || body.mode === "explain_code" ? body.mode : "guide";
-  const locale: Locale = body.locale === "en" ? "en" : "ar";
+  const locale: Locale = body.locale === undefined || body.locale === null ? "ar" : body.locale === "ar" ? "ar" : "en";
   const rawPath = typeof body.path === "string" ? body.path : "/";
   const currentPath = rawPath.startsWith("/") && !rawPath.startsWith("//") && rawPath.length <= 160 ? rawPath.split("?")[0] : "/";
   const history = validHistory(body.history);

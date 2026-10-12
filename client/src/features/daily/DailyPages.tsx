@@ -63,8 +63,8 @@ export function DailyPostPage() {
   const title = ar ? post.titleAr : post.titleEn;
   const body = ar ? post.bodyAr : post.bodyEn;
   const takeaway = ar ? post.takeawayAr : post.takeawayEn;
-  const name = dailyCategoryNames[post.category]?.[locale] ?? post.category;
-  return <article className="page-width section-space daily-post" dir={ar ? "rtl" : "ltr"}>
+  const name = dailyCategoryNames[post.category]?.[ar ? "ar" : "en"] ?? post.category;
+  return <article className="page-width section-space daily-post" dir={locale === "ar" || locale === "ur" ? "rtl" : "ltr"}>
     <Link className="text-link daily-back" href="/daily">{ar ? <ArrowUpRight size={15} /> : <ArrowUpLeft size={15} />}{ar ? "كل أفكار اليوم" : "All daily ideas"}</Link>
     <header className="daily-post__header"><p className="eyebrow"><span className="eyebrow-dot" />{name}<span className="daily-post__date">{post.batchDate}</span></p><h1>{title}</h1><p className="daily-post__dek">{ar ? post.summaryAr : post.summaryEn}</p></header>
     <figure className="daily-post__cover"><img src={post.imagePath} alt={ar ? post.imageAltAr : post.imageAltEn} /><figcaption>{ar ? "رسم تحريري مولّد بالذكاء الاصطناعي لهذا الموضوع." : "An AI-generated editorial illustration for this topic."}</figcaption></figure>

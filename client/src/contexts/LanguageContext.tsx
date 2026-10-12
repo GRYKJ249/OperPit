@@ -1,17 +1,17 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { Locale } from "../data/portfolio";
+import { isRtlLocale, isSiteLocale, type SiteLocale } from "../data/languages";
 import { translate } from "../data/translations";
 
-type LanguageContextValue = { locale: Locale; setLocale: (locale: Locale) => void; toggleLocale: () => void; t: (key: Parameters<typeof translate>[0]) => string };
+type LanguageContextValue = { locale: SiteLocale; setLocale: (locale: SiteLocale) => void; toggleLocale: () => void; t: (key: Parameters<typeof translate>[0]) => string };
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("ar");
+  const [locale, setLocaleState] = useState<SiteLocale>("ar");
 
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem("folio-locale");
-      if (saved === "ar" || saved === "en") setLocaleState(saved);
+      if (isSiteLocale(saved)) setLocaleState(saved);
     } catch {
       // Storage can be unavailable in privacy-restricted contexts.
     }
@@ -19,7 +19,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+    document.documentElement.dir = isRtlLocale(locale) ? "rtl" : "ltr";
     try {
       window.localStorage.setItem("folio-locale", locale);
     } catch {
@@ -27,7 +27,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, [locale]);
 
-  const setLocale = useCallback((next: Locale) => setLocaleState(next), []);
+  const setLocale = useCallback((next: SiteLocale) => setLocaleState(next), []);
   const toggleLocale = useCallback(() => setLocaleState(current => current === "ar" ? "en" : "ar"), []);
   const t = useCallback((key: Parameters<typeof translate>[0]) => translate(key, locale), [locale]);
   const value = useMemo(() => ({ locale, setLocale, toggleLocale, t }), [locale, setLocale, toggleLocale, t]);

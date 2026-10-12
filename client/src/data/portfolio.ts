@@ -1,7 +1,7 @@
 export type Locale = "ar" | "en";
 export type Copy = { ar: string; en: string };
 export const copy = (ar: string, en: string): Copy => ({ ar, en });
-export const localize = (value: Copy, locale: Locale) => value[locale];
+export const localize = (value: Copy, locale: string) => locale === "ar" ? value.ar : value.en;
 
 export type ProjectCategory = "branding" | "product" | "web" | "editorial" | "motion" | "experiments";
 export type JournalTopic = "identity" | "process" | "digital-products" | "visual-culture";
@@ -137,7 +137,7 @@ export const staticContentPaths: string[] = [
   "/services", ...services.map(item => `/services/${item.slug}`),
   "/work", ...workCategories.map(item => `/work/${item.slug}`), ...projects.map(item => `/work/${item.slug}`),
   "/journal", ...journalTopics.map(item => `/journal/topics/${item.slug}`), ...articles.map(item => `/journal/${item.slug}`),
-  "/testimonials", "/faq", "/contact", "/daily", "/github", "/ai-studio", "/council",
+  "/testimonials", "/faq", "/contact", "/daily", "/github", "/gitlab", "/ai-studio", "/council",
 ];
 
 export const routeManifest = [
@@ -160,6 +160,8 @@ export const routeManifest = [
   { path: "/daily/:slug", title: "فكرة اليوم" },
   { path: "/github", title: "مستودعات GitHub العامة" },
   { path: "/github/:owner/:repo", title: "مستودع عام" },
+  { path: "/gitlab", title: "مستودعات GitLab العامة" },
+  { path: "/gitlab/project/:id", title: "مشروع GitLab عام" },
   { path: "/ai-studio", title: "استوديو الذكاء الاصطناعي" },
   { path: "/council", title: "مساحة خاصة" },
   { path: "/testimonials", title: "آراء العملاء" },

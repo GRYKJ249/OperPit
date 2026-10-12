@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import { DailyArchivePage, DailyPostPage } from "./features/daily/DailyPages";
 import { AIStudioPage } from "./features/assistant/AIStudio";
 import { GitHubIndexPage, GitHubRepoPage } from "./features/github/GitHubPages";
+import { GitLabIndexPage, GitLabProjectPage } from "./features/gitlab/GitLabPages";
 import CouncilRoom from "./features/council/CouncilRoom";
 
 export default function App({ ssrPath }: { ssrPath?: string }) {
@@ -48,6 +49,8 @@ export default function App({ ssrPath }: { ssrPath?: string }) {
               <Route path="/daily/:slug" component={DailyPostPage} />
               <Route path="/github" component={GitHubIndexPage} />
               <Route path="/github/:owner/:repo" component={GitHubRepoPage} />
+              <Route path="/gitlab" component={GitLabIndexPage} />
+              <Route path="/gitlab/project/:id" component={GitLabProjectPage} />
               <Route path="/ai-studio" component={AIStudioPage} />
               <Route path="/council" component={CouncilRoom} />
               <Route path="/testimonials" component={TestimonialsPage} />

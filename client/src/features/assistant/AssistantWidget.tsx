@@ -51,7 +51,7 @@ export function AssistantWidget() {
       const response = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, history: messages.slice(-6), locale, path }),
+        body: JSON.stringify({ message, history: messages.slice(-6), locale: locale === "ar" ? "ar" : "en", path }),
         signal: controller.signal,
       });
       if (!response.ok) throw new Error("assistant_unavailable");
@@ -72,7 +72,7 @@ export function AssistantWidget() {
     <button className={`assistant-fab ${open ? "assistant-fab--open" : ""}`} onClick={() => setOpen(value => !value)} aria-label={open ? t("close") : t("openAssistant")} aria-expanded={open} aria-controls="archive-assistant">
       {open ? <X size={21} /> : <><MessageCircle size={19} /><span>{t("assistant")}</span></>}
     </button>
-    {open && <section className="assistant-panel" id="archive-assistant" role="dialog" aria-modal="false" aria-labelledby="assistant-title" dir={locale === "ar" ? "rtl" : "ltr"}>
+    {open && <section className="assistant-panel" id="archive-assistant" role="dialog" aria-modal="false" aria-labelledby="assistant-title" dir={locale === "ar" || locale === "ur" ? "rtl" : "ltr"}>
       <header className="assistant-panel__header"><div className="assistant-avatar"><Bot size={20} /></div><div><h2 id="assistant-title">{t("assistant")}</h2><p>{t("assistantIntro")}</p></div><button className="icon-button" onClick={() => setOpen(false)} aria-label={t("close")}><X size={18} /></button></header>
       <div className="assistant-panel__transcript" ref={transcriptRef} aria-live="polite" aria-relevant="additions text">
         {messages.length === 0 && <div className="assistant-welcome"><span className="assistant-welcome__spark">✳</span><p>{locale === "ar" ? "أقدر أساعدك تختار من 12 مشروعاً مفاهيمياً، 12 مقالاً و6 خدمات. شنو حاب تكتشف؟" : "I can help you explore 12 concept projects, 12 articles, and 6 services. What would you like to find?"}</p><div className="assistant-prompt-chips"><button onClick={() => setInput(locale === "ar" ? "أريد استكشاف مشاريع الهوية" : "Show me identity projects")}>{locale === "ar" ? "مشاريع الهوية" : "Identity work"}</button><button onClick={() => setInput(locale === "ar" ? "ما هي الخدمات المتاحة؟" : "What services are available?")}>{locale === "ar" ? "الخدمات" : "Services"}</button></div></div>}

@@ -38,7 +38,7 @@ export function AIStudioPage() {
     setPending(true); setError(""); setResult(""); setCopied(false);
     try {
       const request = `${type}: ${topic.trim()}`;
-      const response = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "draft", message: request, locale, path, interests: selected }), signal: AbortSignal.timeout(25_000) });
+      const response = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "draft", message: request, locale: ar ? "ar" : "en", path, interests: selected }), signal: AbortSignal.timeout(25_000) });
       const payload = await response.json() as { reply?: string; error?: string };
       if (!response.ok || typeof payload.reply !== "string") throw new Error(payload.error || "assistant_unavailable");
       setResult(payload.reply.slice(0, 5000));
@@ -51,13 +51,13 @@ export function AIStudioPage() {
     psychology: { ar: "علم النفس العام", en: "Everyday psychology" }, "financial-literacy": { ar: "الثقافة المالية", en: "Financial literacy" }, learning: { ar: "التعلّم", en: "Learning" },
   };
   const Arrow = ar ? ArrowUpLeft : ArrowUpRight;
-  return <div className="page-width section-space ai-studio" dir={ar ? "rtl" : "ltr"}>
+  return <div className="page-width section-space ai-studio" dir={locale === "ar" || locale === "ur" ? "rtl" : "ltr"}>
     <div className="page-intro"><p className="eyebrow"><Sparkles size={14} />{ar ? "مختبر الأرشيف الذكي" : "THE ARCHIVE AI STUDIO"}</p><h1>{ar ? "من سؤال صغير إلى مسودة قابلة للبناء." : "Turn a small question into a useful draft."}</h1><p className="page-intro__lead">{ar ? "اكتب مخطط مقال أو صفحة أو فكرة مشروع، ثم عدّل الناتج وانقله بنفسك. المساعد لا ينشر ولا يغيّر ملفات الموقع ولا يشغّل أي كود." : "Draft an article, page outline, or project idea, then edit and export it yourself. The assistant does not publish, change site files, or run code."}</p></div>
     <div className="ai-studio__layout">
       <form className="ai-studio__form" onSubmit={generate}>
         <label><span>{ar ? "نوع المسودة" : "Draft type"}</span><select value={type} onChange={event => setType(event.target.value)}><option value="article">{ar ? "مقال" : "Article"}</option><option value="page">{ar ? "صفحة موقع" : "Website page"}</option><option value="project">{ar ? "فكرة مشروع" : "Project concept"}</option><option value="outline">{ar ? "مخطط وعناوين" : "Outline"}</option><option value="summary">{ar ? "تلخيص" : "Summary"}</option></select></label>
         <label><span>{ar ? "عن ماذا؟" : "What should it cover?"}</span><textarea value={topic} onChange={event => setTopic(event.target.value.slice(0, 1200))} maxLength={1200} rows={6} placeholder={ar ? "مثال: مقال مبسّط عن كيف تساعد تسمية المتغيرات الواضحة على قراءة الكود…" : "Example: A clear introduction to how good variable names make code easier to read…"} required /></label>
-        <div className="ai-interest-panel"><strong>{ar ? "مواضيع تهمني (محلياً)" : "My interests (stored locally)"}</strong><p>{ar ? "تُحفظ في هذا المتصفح فقط لتخصيص الاقتراحات. لا تُستخدم لتدريب نموذج ويمكن مسحها بتبديلها." : "Saved only in this browser to personalize suggestions. Not used to train a model; clear by deselecting."}</p><div className="interest-chips">{interests.map(item => <button key={item} type="button" aria-pressed={selected.includes(item)} onClick={() => toggleInterest(item)}>{labels[item][locale]}</button>)}</div></div>
+        <div className="ai-interest-panel"><strong>{ar ? "مواضيع تهمني (محلياً)" : "My interests (stored locally)"}</strong><p>{ar ? "تُحفظ في هذا المتصفح فقط لتخصيص الاقتراحات. لا تُستخدم لتدريب نموذج ويمكن مسحها بتبديلها." : "Saved only in this browser to personalize suggestions. Not used to train a model; clear by deselecting."}</p><div className="interest-chips">{interests.map(item => <button key={item} type="button" aria-pressed={selected.includes(item)} onClick={() => toggleInterest(item)}>{labels[item][ar ? "ar" : "en"]}</button>)}</div></div>
         {error && <p className="ai-error" role="alert">{error}</p>}
         <button className="button button--primary" type="submit" disabled={pending || !topic.trim()}>{pending ? <LoaderCircle className="spin" size={16} /> : <Sparkles size={16} />}{pending ? (ar ? "يكتب المسودة…" : "Drafting…") : (ar ? "أنشئ مسودة" : "Create a draft")}</button>
         <p className="fine-print">{ar ? "مسودات الذكاء الاصطناعي قد تخطئ. تحقق من الحقائق قبل استخدامها." : "AI drafts can be wrong. Verify facts before using them."}</p>

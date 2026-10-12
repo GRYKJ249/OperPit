@@ -1,4 +1,4 @@
-import type { Locale } from "./portfolio";
+import type { SiteLocale } from "./languages";
 
 const dictionaries = {
   ar: {
@@ -29,6 +29,7 @@ const dictionaries = {
     detailExample: "دراسة حالة مفاهيمية — ليست عملاً حقيقياً", articleExample: "مقال تجريبي — عدّل النص قبل النشر",
     serviceDetail: "تفاصيل الخدمة", workArchive: "أرشيف الأعمال", journalArchive: "أرشيف المقالات", continueReading: "تابع القراءة",
     portfolio: "بورتفوليو شخصي", menu: "القائمة", openAssistant: "افتح مساعد الأرشيف", aiLink: "أرشيف المحتوى",
+    gitlab: "GitLab", pickLanguage: "اختر لغة الواجهة", pickTheme: "اختر ثيم الموقع", lowData: "وضع البيانات الخفيف", lowDataOn: "مفعّل — صور أقل وحركة أخف", lowDataOff: "متوقف — التجربة الكاملة",
   },
   en: {
     home: "Home", about: "About", work: "Work", services: "Services", journal: "Journal", contact: "Contact", daily: "Daily ideas", github: "GitHub", aiStudio: "AI studio",
@@ -58,9 +59,24 @@ const dictionaries = {
     detailExample: "Concept case study — not a real client project", articleExample: "Sample article — edit before publishing",
     serviceDetail: "Service details", workArchive: "Work archive", journalArchive: "Article archive", continueReading: "Continue reading",
     portfolio: "Personal portfolio", menu: "Menu", openAssistant: "Open archive assistant", aiLink: "Content archive",
+    gitlab: "GitLab", pickLanguage: "Choose interface language", pickTheme: "Choose a site theme", lowData: "Low-data mode", lowDataOn: "On — fewer images and less motion", lowDataOff: "Off — full experience",
   },
-} satisfies Record<Locale, Record<string, string>>;
+} satisfies Record<"ar" | "en", Record<string, string>>;
 
-export function translate(key: keyof (typeof dictionaries)["ar"], locale: Locale): string {
-  return dictionaries[locale][key] ?? dictionaries.ar[key] ?? String(key);
+const secondary: Partial<Record<import("./languages").SiteLocale, Partial<Record<keyof (typeof dictionaries)["en"], string>>>> = {
+  fr: { home: "Accueil", about: "À propos", work: "Projets", services: "Services", journal: "Journal", contact: "Contact", daily: "Idées du jour", github: "GitHub", gitlab: "GitLab", aiStudio: "Atelier IA", search: "Rechercher", searchOpen: "Ouvrir la recherche", language: "Langue", pickLanguage: "Choisir la langue", pickTheme: "Choisir un thème", switchTheme: "Changer l’apparence", menu: "Menu", close: "Fermer", lowData: "Mode données réduites", lowDataOn: "Activé — moins d’images et d’animations", lowDataOff: "Désactivé — expérience complète", explore: "Voir les projets", sayHello: "Parlons du projet", viewAll: "Tout explorer", backTop: "Retour en haut" },
+  es: { home: "Inicio", about: "Acerca de", work: "Proyectos", services: "Servicios", journal: "Revista", contact: "Contacto", daily: "Ideas del día", github: "GitHub", gitlab: "GitLab", aiStudio: "Estudio de IA", search: "Buscar", searchOpen: "Abrir búsqueda", language: "Idioma", pickLanguage: "Elegir idioma", pickTheme: "Elegir tema", switchTheme: "Cambiar apariencia", menu: "Menú", close: "Cerrar", lowData: "Modo de pocos datos", lowDataOn: "Activado — menos imágenes y movimiento", lowDataOff: "Desactivado — experiencia completa", explore: "Explorar proyectos", sayHello: "Hablemos", viewAll: "Ver todo", backTop: "Volver arriba" },
+  "zh-CN": { home: "首页", about: "关于", work: "作品", services: "服务", journal: "日志", contact: "联系", daily: "每日灵感", github: "GitHub", gitlab: "GitLab", aiStudio: "AI 工作室", search: "搜索", searchOpen: "打开搜索", language: "语言", pickLanguage: "选择界面语言", pickTheme: "选择网站主题", switchTheme: "切换外观", menu: "菜单", close: "关闭", lowData: "低流量模式", lowDataOn: "已开启 — 减少图片与动画", lowDataOff: "已关闭 — 完整体验", explore: "探索作品", sayHello: "开始交流", viewAll: "查看全部", backTop: "返回顶部" },
+  hi: { home: "मुखपृष्ठ", about: "परिचय", work: "काम", services: "सेवाएँ", journal: "जर्नल", contact: "संपर्क", daily: "आज के विचार", github: "GitHub", gitlab: "GitLab", aiStudio: "AI स्टूडियो", search: "खोजें", searchOpen: "खोज खोलें", language: "भाषा", pickLanguage: "इंटरफ़ेस भाषा चुनें", pickTheme: "थीम चुनें", switchTheme: "रूप बदलें", menu: "मेनू", close: "बंद करें", lowData: "कम-डेटा मोड", lowDataOn: "चालू — कम चित्र और गति", lowDataOff: "बंद — पूरा अनुभव", explore: "काम देखें", sayHello: "बात शुरू करें", viewAll: "सभी देखें", backTop: "ऊपर जाएँ" },
+  ur: { home: "صفحۂ اول", about: "تعارف", work: "کام", services: "خدمات", journal: "جریدہ", contact: "رابطہ", daily: "آج کے خیالات", github: "GitHub", gitlab: "GitLab", aiStudio: "AI اسٹوڈیو", search: "تلاش", searchOpen: "تلاش کھولیں", language: "زبان", pickLanguage: "زبان منتخب کریں", pickTheme: "تھیم منتخب کریں", switchTheme: "ظاہری شکل بدلیں", menu: "مینو", close: "بند کریں", lowData: "کم ڈیٹا موڈ", lowDataOn: "فعال — کم تصاویر اور حرکت", lowDataOff: "غیر فعال — مکمل تجربہ", explore: "کام دیکھیں", sayHello: "بات شروع کریں", viewAll: "سب دیکھیں", backTop: "اوپر جائیں" },
+  bn: { home: "হোম", about: "পরিচিতি", work: "কাজ", services: "সেবা", journal: "জার্নাল", contact: "যোগাযোগ", daily: "আজকের ভাবনা", github: "GitHub", gitlab: "GitLab", aiStudio: "AI স্টুডিও", search: "খুঁজুন", searchOpen: "অনুসন্ধান খুলুন", language: "ভাষা", pickLanguage: "ইন্টারফেসের ভাষা বেছে নিন", pickTheme: "থিম বেছে নিন", switchTheme: "চেহারা বদলান", menu: "মেনু", close: "বন্ধ করুন", lowData: "কম ডেটা মোড", lowDataOn: "চালু — কম ছবি ও অ্যানিমেশন", lowDataOff: "বন্ধ — পূর্ণ অভিজ্ঞতা", explore: "কাজ দেখুন", sayHello: "কথা শুরু করুন", viewAll: "সব দেখুন", backTop: "উপরে যান" },
+  pt: { home: "Início", about: "Sobre", work: "Projetos", services: "Serviços", journal: "Caderno", contact: "Contato", daily: "Ideias do dia", github: "GitHub", gitlab: "GitLab", aiStudio: "Estúdio de IA", search: "Buscar", searchOpen: "Abrir busca", language: "Idioma", pickLanguage: "Escolher idioma", pickTheme: "Escolher tema", switchTheme: "Mudar aparência", menu: "Menu", close: "Fechar", lowData: "Modo de poucos dados", lowDataOn: "Ativado — menos imagens e movimento", lowDataOff: "Desativado — experiência completa", explore: "Explorar projetos", sayHello: "Vamos conversar", viewAll: "Ver tudo", backTop: "Voltar ao topo" },
+  ru: { home: "Главная", about: "Обо мне", work: "Работы", services: "Услуги", journal: "Журнал", contact: "Контакты", daily: "Идеи дня", github: "GitHub", gitlab: "GitLab", aiStudio: "ИИ-студия", search: "Поиск", searchOpen: "Открыть поиск", language: "Язык", pickLanguage: "Выбрать язык", pickTheme: "Выбрать тему", switchTheme: "Сменить оформление", menu: "Меню", close: "Закрыть", lowData: "Экономия трафика", lowDataOn: "Включена — меньше изображений и анимации", lowDataOff: "Выключена — полный режим", explore: "Смотреть работы", sayHello: "Начать разговор", viewAll: "Смотреть всё", backTop: "Наверх" },
+  de: { home: "Startseite", about: "Über mich", work: "Arbeiten", services: "Leistungen", journal: "Journal", contact: "Kontakt", daily: "Ideen des Tages", github: "GitHub", gitlab: "GitLab", aiStudio: "KI-Studio", search: "Suchen", searchOpen: "Suche öffnen", language: "Sprache", pickLanguage: "Sprache auswählen", pickTheme: "Design auswählen", switchTheme: "Darstellung wechseln", menu: "Menü", close: "Schließen", lowData: "Datensparmodus", lowDataOn: "Aktiv — weniger Bilder und Bewegung", lowDataOff: "Aus — vollständige Erfahrung", explore: "Arbeiten ansehen", sayHello: "Gespräch beginnen", viewAll: "Alles ansehen", backTop: "Nach oben" },
+  ja: { home: "ホーム", about: "プロフィール", work: "制作実績", services: "サービス", journal: "ジャーナル", contact: "お問い合わせ", daily: "今日のアイデア", github: "GitHub", gitlab: "GitLab", aiStudio: "AIスタジオ", search: "検索", searchOpen: "検索を開く", language: "言語", pickLanguage: "表示言語を選択", pickTheme: "テーマを選択", switchTheme: "外観を切り替え", menu: "メニュー", close: "閉じる", lowData: "データ節約モード", lowDataOn: "オン — 画像と動きを削減", lowDataOff: "オフ — フル体験", explore: "制作実績を見る", sayHello: "相談する", viewAll: "すべて見る", backTop: "ページ上部へ" },
+};
+
+export function translate(key: keyof (typeof dictionaries)["ar"], locale: SiteLocale): string {
+  if (locale === "ar" || locale === "en") return dictionaries[locale][key] ?? dictionaries.en[key] ?? String(key);
+  return secondary[locale]?.[key] ?? dictionaries.en[key] ?? dictionaries.ar[key] ?? String(key);
 }

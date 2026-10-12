@@ -86,7 +86,7 @@ export function PostInteractions({ slug }: { slug: string }) {
         comment_hidden: { ar: "أخفى الإشراف الآلي التعليق لأنه خالف إرشادات المجتمع؛ لم يُعرض للزوار.", en: "The AI moderator hid this comment because it did not meet the community guidelines." },
         comment_moderation_unavailable: { ar: "الإشراف الذكي غير متاح مؤقتاً؛ لم نحفظ التعليق. جرّب لاحقاً.", en: "AI moderation is temporarily unavailable; the comment was not stored. Please try later." },
       };
-      setNotice(messages[reason]?.[locale] ?? (copy ? "تعذّر نشر التعليق. حاول مرة أخرى." : "The comment could not be posted. Please try again."));
+      setNotice(messages[reason]?.[copy ? "ar" : "en"] ?? (copy ? "تعذّر نشر التعليق. حاول مرة أخرى." : "The comment could not be posted. Please try again."));
     } finally { setBusy(false); }
   };
 

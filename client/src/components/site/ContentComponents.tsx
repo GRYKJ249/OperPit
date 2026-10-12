@@ -1,9 +1,9 @@
 import React from "react";
 import { ArrowLeft, ArrowRight, ArrowUpLeft, ArrowUpRight } from "lucide-react";
 import { Link } from "wouter";
-import { localize, type Article, type Locale, type Project } from "../../data/portfolio";
+import { localize, type Article, type Project } from "../../data/portfolio";
 
-export function PageIntro({ eyebrow, title, description, locale, compact = false }: { eyebrow: string; title: string; description?: string; locale: Locale; compact?: boolean }) {
+export function PageIntro({ eyebrow, title, description, locale, compact = false }: { eyebrow: string; title: string; description?: string; locale: string; compact?: boolean }) {
   return <header className={`page-intro ${compact ? "page-intro--compact" : ""}`}>
     <p className="eyebrow"><span className="eyebrow-dot" />{eyebrow}</p>
     <h1>{title}</h1>
@@ -11,7 +11,7 @@ export function PageIntro({ eyebrow, title, description, locale, compact = false
   </header>;
 }
 
-export function Breadcrumbs({ items, locale }: { items: { label: string; href?: string }[]; locale: Locale }) {
+export function Breadcrumbs({ items, locale }: { items: { label: string; href?: string }[]; locale: string }) {
   const Separator = locale === "ar" ? ArrowLeft : ArrowRight;
   return <nav className="breadcrumbs" aria-label={locale === "ar" ? "مسار الصفحة" : "Breadcrumbs"}>
     {items.map((item, index) => <React.Fragment key={`${item.label}-${index}`}>
@@ -32,7 +32,7 @@ export function SectionHeading({ index, eyebrow, title, description, action }: {
   </div>;
 }
 
-export function ProjectCard({ project, locale, index }: { project: Project; locale: Locale; index?: number }) {
+export function ProjectCard({ project, locale, index }: { project: Project; locale: string; index?: number }) {
   const title = localize(project.title, locale);
   const Arrow = locale === "ar" ? ArrowUpLeft : ArrowUpRight;
   return <article className="project-card">
@@ -47,7 +47,7 @@ export function ProjectCard({ project, locale, index }: { project: Project; loca
   </article>;
 }
 
-export function ArticleCard({ article, locale, index }: { article: Article; locale: Locale; index?: number }) {
+export function ArticleCard({ article, locale, index }: { article: Article; locale: string; index?: number }) {
   const Arrow = locale === "ar" ? ArrowUpLeft : ArrowUpRight;
   return <article className="article-card">
     <Link href={`/journal/${article.slug}`} className="article-card__image-link" aria-label={`${locale === "ar" ? "اقرأ" : "Read"}: ${localize(article.title, locale)}`}>
@@ -71,7 +71,7 @@ export function EmptyState({ title, description }: { title: string; description?
   return <div className="empty-state"><span className="empty-state__mark" aria-hidden="true">/</span><h3>{title}</h3>{description && <p>{description}</p>}</div>;
 }
 
-export function BackLink({ href, children, locale }: { href: string; children: React.ReactNode; locale: Locale }) {
+export function BackLink({ href, children, locale }: { href: string; children: React.ReactNode; locale: string }) {
   const Arrow = locale === "ar" ? ArrowRight : ArrowLeft;
   return <Link className="back-link" href={href}><Arrow size={16} aria-hidden="true" />{children}</Link>;
 }

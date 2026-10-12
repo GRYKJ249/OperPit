@@ -42,10 +42,9 @@ export function DailyFeed({ limit = 5, compact = false }: { limit?: number; comp
     {posts.map(post => <article className="daily-card" key={post.slug}>
       <Link className="daily-card__image" href={`/daily/${post.slug}`} aria-label={`${locale === "ar" ? "اقرأ" : "Read"}: ${locale === "ar" ? post.titleAr : post.titleEn}`}>
         <img src={post.imagePath} alt={locale === "ar" ? post.imageAltAr : post.imageAltEn} loading="lazy" />
-        <span>{categoryNames[post.category]?.[locale] ?? post.category}</span>
       </Link>
       <div className="daily-card__body">
-        <div className="daily-card__meta"><time dateTime={post.batchDate}>{post.batchDate}</time><span>0{post.position + 1}</span></div>
+        <div className="daily-card__meta"><span>{categoryNames[post.category]?.[locale === "ar" ? "ar" : "en"] ?? post.category}</span><time dateTime={post.batchDate}>{post.batchDate}</time><span>0{post.position + 1}</span></div>
         <h3><Link href={`/daily/${post.slug}`}>{locale === "ar" ? post.titleAr : post.titleEn}</Link></h3>
         <p>{locale === "ar" ? post.summaryAr : post.summaryEn}</p>
         <Link className="text-link" href={`/daily/${post.slug}`}>{locale === "ar" ? "اقرأ الفكرة" : "Read the idea"}<ArrowUpRight size={15} /></Link>

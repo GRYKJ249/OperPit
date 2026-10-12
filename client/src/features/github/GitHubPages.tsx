@@ -107,7 +107,7 @@ export function GitHubRepoPage() {
     if (!file || explainPending) return;
     setExplainPending(true); setExplanation("");
     try {
-      const response = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "explain_code", message: ar ? "اشرح وظيفة الملف وبنيته" : "Explain what this file does and how it is structured", code: file.content.slice(0, 8_000), codePath: file.path, codeLanguage: file.language, locale }), signal: AbortSignal.timeout(25_000) });
+      const response = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "explain_code", message: ar ? "اشرح وظيفة الملف وبنيته" : "Explain what this file does and how it is structured", code: file.content.slice(0, 8_000), codePath: file.path, codeLanguage: file.language, locale: ar ? "ar" : "en" }), signal: AbortSignal.timeout(25_000) });
       const payload = await response.json() as { reply?: string };
       if (!response.ok || !payload.reply) throw new Error("assistant_unavailable");
       setExplanation(payload.reply.slice(0, 5000));

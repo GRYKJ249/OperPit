@@ -24,6 +24,8 @@
     { "path": "/daily/:slug", "title": "فكرة اليوم" },
     { "path": "/github", "title": "مستودعات GitHub العامة" },
     { "path": "/github/:owner/:repo", "title": "مستودع عام" },
+    { "path": "/gitlab", "title": "مستودعات GitLab العامة" },
+    { "path": "/gitlab/project/:id", "title": "مشروع GitLab عام" },
     { "path": "/ai-studio", "title": "استوديو الذكاء الاصطناعي" },
     { "path": "/council", "title": "مساحة خاصة" },
     { "path": "/testimonials", "title": "آراء العملاء" },
