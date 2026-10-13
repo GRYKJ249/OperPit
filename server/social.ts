@@ -50,7 +50,11 @@ async function getSnapshot(slug: string, hash: string | null) {
   const metrics = metricRows.reduce((sum, row) => ({ views: sum.views + Number(row.views), shares: sum.shares + Number(row.shares) }), { views: 0, shares: 0 });
   const reactionRows = await db.select({ reaction: dailyReactions.reaction, total: count() }).from(dailyReactions).where(eq(dailyReactions.postSlug, slug)).groupBy(dailyReactions.reaction);
   const reactions = { like: 0, insightful: 0, inspiring: 0 };
-  for (const row of reactionRows) reactions[row.reaction] = Number(row.total);
+  for (const row of reactionRows) {
+    if (row.reaction === "like" || row.reaction === "insightful" || row.reaction === "inspiring") {
+      reactions[row.reaction] = Number(row.total);
+    }
+  }
   const [mine] = hash ? await db.select({ reaction: dailyReactions.reaction }).from(dailyReactions).where(and(eq(dailyReactions.postSlug, slug), eq(dailyReactions.visitorHash, hash))).limit(1) : [];
   const comments = await db.select({ id: dailyComments.id, displayName: dailyComments.displayName, body: dailyComments.body, locale: dailyComments.locale, aiReaction: dailyComments.aiReaction, aiReplyAr: dailyComments.aiReplyAr, aiReplyEn: dailyComments.aiReplyEn, createdAt: dailyComments.createdAt })
     .from(dailyComments).where(and(eq(dailyComments.postSlug, slug), eq(dailyComments.status, "visible"))).orderBy(desc(dailyComments.createdAt)).limit(40);
@@ -85,7 +89,7 @@ socialRouter.post("/:slug/reaction", async (req, res) => {
     if (reaction === null) {
       await db.delete(dailyReactions).where(and(eq(dailyReactions.postSlug, slug), eq(dailyReactions.visitorHash, hash)));
     } else {
-      await db.insert(dailyReactions).values({ postSlug: slug, visitorHash: hash, reaction }).onDuplicateKeyUpdate({ set: { reaction, updatedAt: new Date() } });
+      await db.insert(dailyReactions).values({ postSlug: slug, visitorHash: hash, reaction }).onConflictDoUpdate({ target: [dailyReactions.postSlug, dailyReactions.visitorHash], set: { reaction, updatedAt: new Date() } });
     }
     return res.json(await getSnapshot(slug, hash));
   } catch {
@@ -112,13 +116,13 @@ socialRouter.post("/:slug/metric", async (req, res) => {
       await db.insert(dailyMetricEvents).values({ postSlug: slug, metricDate: date, visitorHash: hash, kind });
       inserted = true;
     } catch (error) {
-      if ((error as { code?: string })?.code !== "ER_DUP_ENTRY") throw error;
+      if ((error as { code?: string })?.code !== "23505") throw error;
     }
     if (inserted) {
       const viewUpdate = { views: sql`${dailyMetrics.views} + 1` };
       const shareUpdate = { shares: sql`${dailyMetrics.shares} + 1` };
       await db.insert(dailyMetrics).values({ postSlug: slug, metricDate: date, views: kind === "view" ? 1 : 0, shares: kind === "share" ? 1 : 0 })
-        .onDuplicateKeyUpdate({ set: kind === "view" ? viewUpdate : shareUpdate });
+        .onConflictDoUpdate({ target: [dailyMetrics.postSlug, dailyMetrics.metricDate], set: kind === "view" ? viewUpdate : shareUpdate });
     }
     return res.json({ success: true, counted: inserted });
   } catch {
@@ -152,7 +156,7 @@ socialRouter.post("/:slug/comments", async (req: Request, res: Response) => {
       await db.insert(dailyComments).values({ postSlug: slug, displayName: "Removed", body: "", locale, status: "hidden", moderationReason: moderation.reason, aiReaction: null, aiReplyAr: null, aiReplyEn: null });
       return res.status(422).json({ error: "comment_hidden" });
     }
-    const [saved] = await db.insert(dailyComments).values({ postSlug: slug, displayName: name, body: text, locale, status: "visible", moderationReason: null, aiReaction: moderation.reaction, aiReplyAr: moderation.replyAr, aiReplyEn: moderation.replyEn }).$returningId();
+    const [saved] = await db.insert(dailyComments).values({ postSlug: slug, displayName: name, body: text, locale, status: "visible", moderationReason: null, aiReaction: moderation.reaction, aiReplyAr: moderation.replyAr, aiReplyEn: moderation.replyEn }).returning();
     return res.status(201).json({ success: true, comment: { id: saved.id, displayName: name, body: text, locale, aiReaction: moderation.reaction, aiReplyAr: moderation.replyAr, aiReplyEn: moderation.replyEn, createdAt: new Date().toISOString() } });
   } catch {
     return res.status(503).json({ error: "social_unavailable" });

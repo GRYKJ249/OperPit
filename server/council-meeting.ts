@@ -140,7 +140,7 @@ async function voteOnIdeas(runId: number, members: AiProviderId[], ideas: Idea[]
     for (const vote of result.value.votes) {
       const voterHash = councilVoterHash(runId, result.value.provider);
       try {
-        await getDb().then(db => db?.insert(councilVotes).values({ runId, voterHash, ideaId: vote.ideaId, stars: vote.stars }).onDuplicateKeyUpdate({ set: { stars: vote.stars } }));
+        await getDb().then(db => db?.insert(councilVotes).values({ runId, voterHash, ideaId: vote.ideaId, stars: vote.stars }).onConflictDoUpdate({ target: [councilVotes.runId, councilVotes.voterHash, councilVotes.ideaId], set: { stars: vote.stars } }));
         votes.push(vote);
       } catch { /* One invalid/duplicate vote must not abort the meeting. */ }
     }
@@ -274,7 +274,7 @@ export async function providerHealthCheck() {
     const id = provider.id as AiProviderId;
     await completeWithProvider(id, [{ role: "system", content: "أجب بكلمة واحدة فقط: READY" }, { role: "user", content: "جاهز؟" }], { maxTokens: 16, timeoutMs: 15_000, usageMode: "provider_healthcheck" });
     const db = await getDb();
-    if (db) await db.insert(councilProviderStates).values({ providerId: id, lastSuccessAt: new Date(), failureCount: 0, lastErrorCode: null }).onDuplicateKeyUpdate({ set: { lastSuccessAt: new Date(), failureCount: 0, lastErrorCode: null } });
+    if (db) await db.insert(councilProviderStates).values({ providerId: id, lastSuccessAt: new Date(), failureCount: 0, lastErrorCode: null }).onConflictDoUpdate({ target: councilProviderStates.providerId, set: { lastSuccessAt: new Date(), failureCount: 0, lastErrorCode: null } });
     return id;
   }));
   return { checked: eligible.length, active: results.filter(result => result.status === "fulfilled").length, unavailable: results.filter(result => result.status === "rejected").length };

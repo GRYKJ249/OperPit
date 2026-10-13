@@ -17,7 +17,8 @@ dailyRouter.get("/latest", async (_req, res) => {
     const [batch] = await db.select({ batchDate: dailyBatches.batchDate, themeKey: dailyBatches.themeKey, evolutionAr: dailyBatches.evolutionAr, evolutionEn: dailyBatches.evolutionEn })
       .from(dailyBatches).where(eq(dailyBatches.status, "published")).orderBy(desc(dailyBatches.batchDate)).limit(1);
     return res.json({ batch: batch ?? null });
-  } catch {
+  } catch (error) {
+    console.error("[daily] latest query failed:", error instanceof Error ? error.message.slice(0, 200) : "unknown_error");
     return res.status(503).json({ error: "daily_unavailable" });
   }
 });

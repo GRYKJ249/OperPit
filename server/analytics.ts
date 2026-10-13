@@ -61,7 +61,7 @@ analyticsRouter.post("/visit", async (req, res) => {
       await db.insert(siteVisitEvents).values({ metricDate, route, visitorHash: hash });
       return res.json({ recorded: true });
     } catch (error) {
-      if ((error as { code?: string })?.code === "ER_DUP_ENTRY") return res.json({ recorded: false });
+      if ((error as { code?: string })?.code === "23505") return res.json({ recorded: false });
       throw error;
     }
   } catch {

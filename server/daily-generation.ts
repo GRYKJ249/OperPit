@@ -174,7 +174,7 @@ async function performDailyIssue(date: string): Promise<DailyPost[]> {
     throw new Error("daily_batch_in_progress");
   }
   await db.insert(dailyBatches).values({ batchDate: date, status: "processing", generatedCount: 0, errorCode: null, startedAt: new Date(), completedAt: null })
-    .onDuplicateKeyUpdate({ set: { status: "processing", generatedCount: 0, errorCode: null, startedAt: new Date(), completedAt: null } });
+    .onConflictDoUpdate({ target: dailyBatches.batchDate, set: { status: "processing", generatedCount: 0, errorCode: null, startedAt: new Date(), completedAt: null } });
 
   try {
     const copy = await generateCopy(date);
@@ -190,7 +190,7 @@ async function performDailyIssue(date: string): Promise<DailyPost[]> {
           takeawayAr: draft.takeawayAr, takeawayEn: draft.takeawayEn,
           imagePath: image.stablePath, imageAltAr: draft.imageAltAr, imageAltEn: draft.imageAltEn,
         };
-        await tx.insert(dailyPosts).values(post).onDuplicateKeyUpdate({ set: post });
+        await tx.insert(dailyPosts).values(post).onConflictDoUpdate({ target: dailyPosts.slug, set: post });
       }
       await tx.update(dailyBatches).set({ status: "published", generatedCount: 5, themeKey: copy.themeKey, evolutionAr: copy.evolutionAr, evolutionEn: copy.evolutionEn, errorCode: null, completedAt: new Date() }).where(eq(dailyBatches.batchDate, date));
     });

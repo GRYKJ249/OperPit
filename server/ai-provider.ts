@@ -22,7 +22,7 @@ const splitKeys = (value?: string) => (value ?? "").split(/[\n,;]+/).map(key => 
 const specs: Record<AiProviderId, ProviderSpec> = {
   manus: { id: "manus", label: "Manus AI", family: "managed", keys: () => splitKeys(process.env.MANUS_API_KEY), model: () => "" },
   openai: { id: "openai", label: "ChatGPT / OpenAI", family: "openai", keys: () => splitKeys(process.env.PORTFOLIO_OPENAI_API_KEYS ?? process.env.PORTFOLIO_OPENAI_API_KEY), model: () => process.env.PORTFOLIO_OPENAI_MODEL?.trim() || "gpt-4.1-mini" },
-  gemini: { id: "gemini", label: "Gemini", family: "gemini", keys: () => splitKeys(process.env.PORTFOLIO_GEMINI_API_KEYS), model: () => process.env.PORTFOLIO_GEMINI_MODEL?.trim() || "gemini-2.5-flash" },
+  gemini: { id: "gemini", label: "Gemini", family: "gemini", keys: () => splitKeys(process.env.PORTFOLIO_GEMINI_API_KEYS), model: () => process.env.PORTFOLIO_GEMINI_MODEL?.trim() || "gemini-3.8-flash" },
   deepseek: { id: "deepseek", label: "DeepSeek", family: "deepseek", keys: () => splitKeys(process.env.PORTFOLIO_DEEPSEEK_API_KEYS), model: () => process.env.PORTFOLIO_DEEPSEEK_MODEL?.trim() || "deepseek-chat" },
   groq: { id: "groq", label: "Llama / Groq", family: "openai", keys: () => splitKeys(process.env.PORTFOLIO_GROQ_API_KEYS), model: () => process.env.PORTFOLIO_GROQ_MODEL?.trim() || "llama-3.3-70b-versatile" },
 };
@@ -208,7 +208,7 @@ export function truncateWords(value: string, maxWords: number) {
 /** Generate a post illustration through the site's configured OpenAI-compatible image provider. */
 export async function generateImageWithProvider(prompt: string, timeoutMs = 120_000): Promise<GeneratedImage> {
   const geminiKeys = splitKeys(process.env.PORTFOLIO_GEMINI_API_KEYS);
-  const geminiModel = process.env.PORTFOLIO_GEMINI_IMAGE_MODEL?.trim() || "gemini-2.5-flash-image";
+  const geminiModel = process.env.PORTFOLIO_GEMINI_IMAGE_MODEL?.trim() || "gemini-3.1-flash-image";
   for (const key of geminiKeys) {
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent`, {

@@ -38,7 +38,7 @@ async function discussionRun(db: NonNullable<Awaited<ReturnType<typeof getDb>>>)
   const date = dateNow();
   const [existing] = await db.select().from(councilRuns).where(and(eq(councilRuns.meetingDate, date), eq(councilRuns.sessionType, "discussion"))).limit(1);
   if (existing) return existing;
-  await db.insert(councilRuns).values({ meetingDate: date, sessionType: "discussion", topic: "جلسة خاصة للمساعدين", groupName: "مجلس الفكرة", groupTheme: "cobalt", status: "completed", completedAt: new Date() }).onDuplicateKeyUpdate({ set: { topic: "جلسة خاصة للمساعدين" } });
+  await db.insert(councilRuns).values({ meetingDate: date, sessionType: "discussion", topic: "جلسة خاصة للمساعدين", groupName: "مجلس الفكرة", groupTheme: "cobalt", status: "completed", completedAt: new Date() }).onConflictDoUpdate({ target: [councilRuns.meetingDate, councilRuns.sessionType], set: { topic: "جلسة خاصة للمساعدين" } });
   const [created] = await db.select().from(councilRuns).where(and(eq(councilRuns.meetingDate, date), eq(councilRuns.sessionType, "discussion"))).limit(1);
   if (!created) throw new Error("council_session_unavailable");
   return created;
@@ -170,7 +170,7 @@ councilRouter.post("/providers/:providerId/freeze", requireAdmin, async (req, re
     const db = await getDb();
     if (!db) return res.status(503).json({ error: "database_unavailable" });
     const frozenUntil = new Date(Date.now() + 24 * 60 * 60_000);
-    await db.insert(councilProviderStates).values({ providerId, frozenUntil, failureCount: 0 }).onDuplicateKeyUpdate({ set: { frozenUntil } });
+    await db.insert(councilProviderStates).values({ providerId, frozenUntil, failureCount: 0 }).onConflictDoUpdate({ target: councilProviderStates.providerId, set: { frozenUntil } });
     await audit("provider_frozen", "human-admin", providerId, frozenUntil.toISOString());
     return res.json({ success: true, frozenUntil: frozenUntil.toISOString() });
   } catch { return res.status(503).json({ error: "provider_update_failed" }); }
@@ -183,7 +183,7 @@ councilRouter.post("/providers/:providerId/resume", requireAdmin, async (req, re
   try {
     const db = await getDb();
     if (!db) return res.status(503).json({ error: "database_unavailable" });
-    await db.insert(councilProviderStates).values({ providerId, frozenUntil: null, failureCount: 0 }).onDuplicateKeyUpdate({ set: { frozenUntil: null, failureCount: 0, lastErrorCode: null } });
+    await db.insert(councilProviderStates).values({ providerId, frozenUntil: null, failureCount: 0 }).onConflictDoUpdate({ target: councilProviderStates.providerId, set: { frozenUntil: null, failureCount: 0, lastErrorCode: null } });
     await audit("provider_resumed", "human-admin", providerId, "manual_resume");
     return res.json({ success: true });
   } catch { return res.status(503).json({ error: "provider_update_failed" }); }
